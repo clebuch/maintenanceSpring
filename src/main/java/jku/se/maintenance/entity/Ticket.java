@@ -1,4 +1,4 @@
-package jku.se.maintenance;
+package jku.se.maintenance.entity;
 
 import lombok.Data;
 
