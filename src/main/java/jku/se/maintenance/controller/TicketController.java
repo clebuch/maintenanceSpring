@@ -13,7 +13,7 @@ import jku.se.maintenance.repository.TicketRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-
+@CrossOrigin
 @RestController
 @RequestMapping("/ticket")
 @Tag(name = "Ticket", description = "the Maintenance Ticket API")
