@@ -1,0 +1,80 @@
+package jku.se.maintenance;
+
+import io.swagger.annotations.Tag;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/ticket")
+public class TicketController {
+
+    private final TicketRepository ticketRepository;
+
+    TicketController(TicketRepository ticketRepository){
+        this.ticketRepository = ticketRepository;
+    }
+    
+    @Operation(summary = "Get a ticket")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Found the ticket",
+                    content = {@Content(mediaType = "application/json",
+                            schema = @Schema(implementation = Ticket.class))}),
+            @ApiResponse(responseCode = "404", description = "Ticket not found", content = @Content(mediaType = "application/json"))})
+    
+    @GetMapping("/{id}")
+    public Ticket findOne(@PathVariable int id){
+        return ticketRepository.findById(id).orElseThrow(()->new IllegalArgumentException(String.valueOf(id)));
+    }
+
+    @Operation(summary = "Get all distinct nutrients")
+    @ApiResponse(responseCode = "200", description = "Found the tickets",
+            content = {@Content(mediaType = "application/json",
+                    array = @ArraySchema(schema = @Schema(implementation = Ticket.class)))})
+    @GetMapping
+    public Iterable<Ticket> findAll(){
+        return ticketRepository.findAll();
+    }
+    
+    @Operation(summary = "Edit a ticket")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Edited the ticket",
+                    content = {@Content(mediaType = "application/json", schema = @Schema(implementation = Ticket.class))}),
+            @ApiResponse(responseCode = "404", description = "Ticket not found", content = @Content(mediaType = "application/json"))})
+    @PutMapping
+    public Ticket edit(int id, Ticket ticket) {
+        ticket.setId(id);
+        return ticketRepository.save(ticket);
+    }
+
+    @Operation(summary = "Add a new ticket")
+    @ApiResponse(responseCode = "201", description = "Added the ticket",
+            content = {@Content(mediaType = "application/json",
+                    schema = @Schema(implementation = Ticket.class))})
+    @ResponseStatus(HttpStatus.CREATED)   
+    @PostMapping
+    public Ticket add(@RequestBody Ticket ticket) {
+        return ticketRepository.save(ticket);
+    }
+    
+    @Operation(summary = "Delete a ticket")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Deleted the ticket",
+                    content = {@Content(mediaType = "application/json",
+                            schema = @Schema(implementation = Ticket.class))}),
+            @ApiResponse(responseCode = "404", description = "Ticket not found", content = @Content(mediaType = "application/json"))})
+    @DeleteMapping("/{id}")
+    public void delete(@PathVariable int id) {
+        Ticket ticket = findOne(id);
+        ticketRepository.delete(ticket);
+    }
+
+
+}
