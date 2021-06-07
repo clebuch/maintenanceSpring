@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
-
+@CrossOrigin
 @RestController
 @RequestMapping("/room")
 @Tag(name = "Room", description = "the Maintenance Room API")

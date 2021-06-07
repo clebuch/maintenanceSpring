@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
-
+@CrossOrigin
 @RestController
 @RequestMapping("/ticket")
 @Tag(name = "Ticket", description = "the Maintenance Ticket API")
