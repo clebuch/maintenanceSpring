@@ -10,8 +10,13 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jku.se.maintenance.entity.Room;
 import jku.se.maintenance.exception.ObjectNotFoundException;
 import jku.se.maintenance.repository.RoomRepository;
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.Link;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 
 @RestController
@@ -33,7 +38,8 @@ public class RoomController {
             @ApiResponse(responseCode = "404", description = "Room not found", content = @Content(mediaType = "application/json"))})
     @GetMapping("/{id}")
     public Room findOne(@PathVariable int id) throws IllegalArgumentException {
-        return roomRepository.findById(id).orElseThrow(() -> new ObjectNotFoundException(id, "Room"));
+        Room room = roomRepository.findById(id).orElseThrow(() -> new ObjectNotFoundException(id, "Room"));
+        return setLinks(room);
     }
 
     @Operation(summary = "Get all rooms")
@@ -42,7 +48,14 @@ public class RoomController {
                     array = @ArraySchema(schema = @Schema(implementation = Room.class)))})
     @GetMapping
     public Iterable<Room> findAll() {
-        return roomRepository.findAll();
+        Iterable<Room> rooms = roomRepository.findAll();
+        rooms.forEach(t -> {
+                    Link selfLink = linkTo(RoomController.class).slash(t.getId()).withSelfRel();
+                    t.add(selfLink);
+                }
+        );
+        Link selfLink = linkTo(RoomController.class).withSelfRel();
+        return CollectionModel.of(rooms, selfLink);
     }
 
     @Operation(summary = "Edit a room")
@@ -53,7 +66,7 @@ public class RoomController {
     @PutMapping("/{id}")
     public Room edit(@PathVariable int id, @RequestBody Room room) {
         room.setId(id);
-        return roomRepository.save(room);
+        return setLinks(roomRepository.save(room));
     }
 
     @Operation(summary = "Add a new room")
@@ -63,7 +76,7 @@ public class RoomController {
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
     public Room add(@RequestBody Room room) {
-        return roomRepository.save(room);
+        return setLinks(roomRepository.save(room));
     }
 
     @Operation(summary = "Delete a room")
@@ -73,8 +86,19 @@ public class RoomController {
                             schema = @Schema(implementation = Room.class))}),
             @ApiResponse(responseCode = "404", description = "Room not found", content = @Content(mediaType = "application/json"))})
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable int id) {
-        roomRepository.delete(findOne(id));
+    public Room delete(@PathVariable int id) {
+        Room room = findOne(id);
+        room.removeLinks();
+        room.add(linkTo(methodOn(RoomController.class).findAll()).withRel("allRooms"));
+        roomRepository.delete(room);
+        return room;
+    }
+
+    private Room setLinks(Room room) {
+        Link selfLink = linkTo(RoomController.class).slash(room.getId()).withSelfRel();
+        Link allRooms = linkTo(methodOn(RoomController.class).findAll()).withRel("allRooms");
+        room.add(selfLink, allRooms);
+        return room;
     }
 
 

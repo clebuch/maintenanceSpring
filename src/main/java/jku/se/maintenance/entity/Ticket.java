@@ -1,20 +1,23 @@
 package jku.se.maintenance.entity;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.springframework.hateoas.RepresentationModel;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
+import javax.persistence.*;
 import java.util.Date;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
 @Entity
-public class Ticket {
-    @Id @GeneratedValue
+public class Ticket extends RepresentationModel<Ticket> {
+    @Id
+    @GeneratedValue
     private int id;
     private String title;
     private String description;
-    private int roomNr;
+    @ManyToOne(cascade = CascadeType.ALL)
+    private Room room;
     private Priority priority;
     private Date createdDate;
     private boolean resolved;
