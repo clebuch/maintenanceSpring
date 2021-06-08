@@ -10,8 +10,13 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jku.se.maintenance.entity.Ticket;
 import jku.se.maintenance.exception.ObjectNotFoundException;
 import jku.se.maintenance.repository.TicketRepository;
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.Link;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
+
 
 @CrossOrigin
 @RestController
@@ -33,7 +38,8 @@ public class TicketController {
             @ApiResponse(responseCode = "404", description = "Ticket not found", content = @Content(mediaType = "application/json"))})
     @GetMapping("/{id}")
     public Ticket findOne(@PathVariable int id) throws IllegalArgumentException {
-        return ticketRepository.findById(id).orElseThrow(() -> new ObjectNotFoundException(id, "Ticket"));
+        Ticket ticket = ticketRepository.findById(id).orElseThrow(() -> new ObjectNotFoundException(id, "Ticket"));
+        return setLinks(ticket);
     }
 
     @Operation(summary = "Get all tickets")
@@ -42,7 +48,14 @@ public class TicketController {
                     array = @ArraySchema(schema = @Schema(implementation = Ticket.class)))})
     @GetMapping
     public Iterable<Ticket> findAll() {
-        return ticketRepository.findAll();
+        Iterable<Ticket> tickets = ticketRepository.findAll();
+        tickets.forEach(t -> {
+                    Link selfLink = linkTo(TicketController.class).slash(t.getId()).withSelfRel();
+                    t.add(selfLink);
+                }
+        );
+        Link selfLink = linkTo(TicketController.class).withSelfRel();
+        return CollectionModel.of(tickets, selfLink);
     }
 
     @Operation(summary = "Edit a ticket")
@@ -53,7 +66,7 @@ public class TicketController {
     @PutMapping("/{id}")
     public Ticket edit(@PathVariable int id, @RequestBody Ticket ticket) {
         ticket.setId(id);
-        return ticketRepository.save(ticket);
+        return setLinks(ticketRepository.save(ticket));
     }
 
     @Operation(summary = "Add a new ticket")
@@ -63,7 +76,7 @@ public class TicketController {
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
     public Ticket add(@RequestBody Ticket ticket) {
-        return ticketRepository.save(ticket);
+        return setLinks(ticketRepository.save(ticket));
     }
 
     @Operation(summary = "Delete a ticket")
@@ -73,8 +86,19 @@ public class TicketController {
                             schema = @Schema(implementation = Ticket.class))}),
             @ApiResponse(responseCode = "404", description = "Ticket not found", content = @Content(mediaType = "application/json"))})
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable int id) {
-        ticketRepository.delete(findOne(id));
+    public Ticket delete(@PathVariable int id) {
+        Ticket ticket = findOne(id);
+        ticket.removeLinks();
+        ticket.add(linkTo(methodOn(TicketController.class).findAll()).withRel("allTickets"));
+        ticketRepository.delete(ticket);
+        return ticket;
+    }
+
+    private Ticket setLinks(Ticket ticket) {
+        Link selfLink = linkTo(TicketController.class).slash(ticket.getId()).withSelfRel();
+        Link allTickets = linkTo(methodOn(TicketController.class).findAll()).withRel("allTickets");
+        ticket.add(selfLink, allTickets);
+        return ticket;
     }
 
 
