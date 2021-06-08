@@ -10,6 +10,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jku.se.maintenance.entity.Room;
 import jku.se.maintenance.exception.ObjectNotFoundException;
 import jku.se.maintenance.repository.RoomRepository;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.Link;
 import org.springframework.http.HttpStatus;
@@ -22,6 +24,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @RestController
 @RequestMapping("/room")
 @Tag(name = "Room", description = "the Maintenance Room API")
+@CacheConfig(cacheNames = {"rooms"})
 public class RoomController {
 
     private final RoomRepository roomRepository;
@@ -30,6 +33,7 @@ public class RoomController {
         this.roomRepository = roomRepository;
     }
 
+    @Cacheable
     @Operation(summary = "Get a room")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Found the room",
@@ -42,6 +46,7 @@ public class RoomController {
         return setLinks(room);
     }
 
+    @Cacheable
     @Operation(summary = "Get all rooms")
     @ApiResponse(responseCode = "200", description = "Found the rooms",
             content = {@Content(mediaType = "application/json",
@@ -58,6 +63,7 @@ public class RoomController {
         return CollectionModel.of(rooms, selfLink);
     }
 
+    @Cacheable
     @Operation(summary = "Edit a room")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Edited the room",
@@ -69,6 +75,7 @@ public class RoomController {
         return setLinks(roomRepository.save(room));
     }
 
+    @Cacheable
     @Operation(summary = "Add a new room")
     @ApiResponse(responseCode = "201", description = "Added the room",
             content = {@Content(mediaType = "application/json",
@@ -79,6 +86,7 @@ public class RoomController {
         return setLinks(roomRepository.save(room));
     }
 
+    @Cacheable
     @Operation(summary = "Delete a room")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Deleted the room",

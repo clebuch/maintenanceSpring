@@ -10,6 +10,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jku.se.maintenance.entity.Ticket;
 import jku.se.maintenance.exception.ObjectNotFoundException;
 import jku.se.maintenance.repository.TicketRepository;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.Link;
 import org.springframework.http.HttpStatus;
@@ -22,6 +24,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @RestController
 @RequestMapping("/ticket")
 @Tag(name = "Ticket", description = "the Maintenance Ticket API")
+@CacheConfig(cacheNames = {"tickets"})
 public class TicketController {
 
     private final TicketRepository ticketRepository;
@@ -30,6 +33,7 @@ public class TicketController {
         this.ticketRepository = ticketRepository;
     }
 
+    @Cacheable
     @Operation(summary = "Get a ticket")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Found the ticket",
@@ -42,6 +46,7 @@ public class TicketController {
         return setLinks(ticket);
     }
 
+    @Cacheable
     @Operation(summary = "Get all tickets")
     @ApiResponse(responseCode = "200", description = "Found the tickets",
             content = {@Content(mediaType = "application/json",
@@ -58,6 +63,7 @@ public class TicketController {
         return CollectionModel.of(tickets, selfLink);
     }
 
+    @Cacheable
     @Operation(summary = "Edit a ticket")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Edited the ticket",
@@ -69,6 +75,7 @@ public class TicketController {
         return setLinks(ticketRepository.save(ticket));
     }
 
+    @Cacheable
     @Operation(summary = "Add a new ticket")
     @ApiResponse(responseCode = "201", description = "Added the ticket",
             content = {@Content(mediaType = "application/json",
@@ -79,6 +86,7 @@ public class TicketController {
         return setLinks(ticketRepository.save(ticket));
     }
 
+    @Cacheable
     @Operation(summary = "Delete a ticket")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Deleted the ticket",
