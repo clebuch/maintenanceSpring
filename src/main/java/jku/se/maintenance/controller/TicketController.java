@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jku.se.maintenance.entity.Room;
 import jku.se.maintenance.entity.Ticket;
 import jku.se.maintenance.exception.ObjectNotFoundException;
 import jku.se.maintenance.repository.RoomRepository;
@@ -108,7 +109,9 @@ public class TicketController {
         Ticket ticket = findOne(id);
         ticket.removeLinks();
         ticket.add(linkTo(methodOn(TicketController.class).findAll()).withRel("allTickets"));
-        ticketRepository.delete(ticket);
+        Room room = roomRepository.findById(ticket.getRoom().getId()).get();
+        room.getTickets().remove(ticket);
+        roomRepository.save(room);
         return ticket;
     }
 
