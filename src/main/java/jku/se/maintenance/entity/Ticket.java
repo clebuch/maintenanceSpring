@@ -5,21 +5,21 @@ import lombok.EqualsAndHashCode;
 import org.springframework.hateoas.RepresentationModel;
 
 import javax.persistence.*;
-import java.util.Date;
+
 
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Entity
 public class Ticket extends RepresentationModel<Ticket> {
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     private String title;
     private String description;
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.LAZY)
     private Room room;
     private Priority priority;
-    private Date createdDate;
-    private boolean resolved;
-    private Date resolvedDate;
+    private long createdTimeInSeconds;
+    private boolean isResolved;
+    private long resolvedTimeInSeconds;
 }

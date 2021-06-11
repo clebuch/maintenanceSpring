@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jku.se.maintenance.entity.Ticket;
 import jku.se.maintenance.exception.ObjectNotFoundException;
+import jku.se.maintenance.repository.RoomRepository;
 import jku.se.maintenance.repository.TicketRepository;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.Cacheable;
@@ -16,6 +17,7 @@ import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.Link;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
@@ -28,9 +30,11 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 public class TicketController {
 
     private final TicketRepository ticketRepository;
+    private final RoomRepository roomRepository;
 
-    TicketController(TicketRepository ticketRepository) {
+    TicketController(TicketRepository ticketRepository, RoomRepository roomRepository) {
         this.ticketRepository = ticketRepository;
+        this.roomRepository = roomRepository;
     }
 
     @Cacheable
@@ -72,6 +76,8 @@ public class TicketController {
     @PutMapping("/{id}")
     public Ticket edit(@PathVariable int id, @RequestBody Ticket ticket) {
         ticket.setId(id);
+        ticket.setRoom(roomRepository.findById(ticket.getRoom().getId())
+                .orElseThrow(() -> new ObjectNotFoundException(ticket.getRoom().getId(), "Room")));
         return setLinks(ticketRepository.save(ticket));
     }
 
@@ -83,6 +89,10 @@ public class TicketController {
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
     public Ticket add(@RequestBody Ticket ticket) {
+        ticket.setRoom(roomRepository.findById(ticket.getRoom().getId())
+                .orElseThrow(() -> new ObjectNotFoundException(ticket.getRoom().getId(), "Room")));
+
+
         return setLinks(ticketRepository.save(ticket));
     }
 
