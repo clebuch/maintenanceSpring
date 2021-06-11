@@ -16,7 +16,7 @@ public class Ticket extends RepresentationModel<Ticket> {
     private int id;
     private String title;
     private String description;
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     private Room room;
     private Priority priority;
     private long createdTimeInSeconds;

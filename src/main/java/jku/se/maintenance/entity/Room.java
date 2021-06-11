@@ -17,7 +17,8 @@ public class Room extends RepresentationModel<Room> {
     @OneToMany(
             mappedBy = "room",
             cascade = CascadeType.ALL,
-            orphanRemoval = true
+            orphanRemoval = true,
+            fetch = FetchType.EAGER
     )
     @JsonIgnore
     public List<Ticket> tickets = new ArrayList<>();
